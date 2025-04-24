@@ -1,0 +1,6 @@
+@DeliveryTrackingSystem_HostAddress = http://localhost:5187
+
+GET {{DeliveryTrackingSystem_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
