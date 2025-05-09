@@ -11,5 +11,6 @@ namespace DeliveryTrackingSystem.Services.Interfaces
         Task CreateAsync(RegisterDto userCreateDto);
         Task UpdateAsync(int id, UserUpdateDto dto);
         Task DeleteAsync(int id);
+        Task<UserDto> GetByEmailAsync(string email);
     }
 }

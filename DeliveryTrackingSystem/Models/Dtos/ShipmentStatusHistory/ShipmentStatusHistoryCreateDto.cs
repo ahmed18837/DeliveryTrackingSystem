@@ -1,10 +1,10 @@
 ﻿using DeliveryTrackingSystem.Helper;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace DeliveryTrackingSystem.Models.Dtos.ShipmentStatusHistory
 {
-    public class ShipmentStatusHistoryCreateDto
+    public partial class ShipmentStatusHistoryCreateDto
     {
         [Required]
         [DefaultValue(ShipmentStatus.Pending)]

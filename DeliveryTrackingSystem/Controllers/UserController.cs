@@ -1,6 +1,7 @@
 ﻿using DeliveryTrackingSystem.Models.Dtos.Auth;
 using DeliveryTrackingSystem.Models.Dtos.User;
 using DeliveryTrackingSystem.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DeliveryTrackingSystem.Controllers
@@ -14,7 +15,7 @@ namespace DeliveryTrackingSystem.Controllers
         [HttpGet]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client, NoStore = false)]
 
-        //[Authorize("Admin")]
+        [Authorize("SuperAdmin, Admin")]
         public async Task<IActionResult> GetAll()
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -30,6 +31,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
+        [Authorize("SuperAdmin, Admin")]
         [HttpGet("{id:int}")]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client, NoStore = false)]
         public async Task<IActionResult> GetById(int id)
@@ -45,6 +47,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
+        [Authorize("SuperAdmin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] RegisterDto dto)
         {
@@ -61,6 +64,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
+        [Authorize("SuperAdmin, Admin")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] UserUpdateDto dto)
         {
@@ -77,6 +81,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
+        [Authorize("SuperAdmin, Admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -88,6 +93,26 @@ namespace DeliveryTrackingSystem.Controllers
             catch (Exception ex)
             {
                 return NotFound(ex.Message);
+            }
+        }
+
+        [Authorize("SuperAdmin, Admin")]
+        [HttpGet("UserByEmail/{email}")]
+        [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client, NoStore = false)]
+        public async Task<IActionResult> GetUserByEmail(string email)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                var user = await _userService.GetByEmailAsync(email);
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
     }

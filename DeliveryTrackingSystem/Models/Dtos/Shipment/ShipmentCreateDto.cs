@@ -27,7 +27,7 @@ namespace DeliveryTrackingSystem.Models.Dtos.Shipment
         public decimal ShippingCost { get; set; }
 
         [Required(ErrorMessage = "Customer ID is required.")]
-        [DefaultValue(5)]
+        [DefaultValue(500)]
         public int CustomerId { get; set; }
 
         public int? DriverId { get; set; }

@@ -1,5 +1,6 @@
 ﻿using DeliveryTrackingSystem.Models.Dtos.ShipmentStatusHistory;
 using DeliveryTrackingSystem.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DeliveryTrackingSystem.Controllers
@@ -10,6 +11,7 @@ namespace DeliveryTrackingSystem.Controllers
     {
         private readonly IShipmentStatusHistoryService _historyService = historyService;
 
+        [Authorize("SuperAdmin, Admin, Employee")]
         [HttpGet]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client, NoStore = false)]
         public async Task<IActionResult> GetAll()
@@ -42,6 +44,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
+        [Authorize("SuperAdmin, Admin, Employee")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ShipmentStatusHistoryCreateDto dto)
         {
@@ -58,6 +61,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
+        [Authorize("SuperAdmin, Admin, Employee")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] ShipmentStatusHistoryCreateDto dto)
         {
@@ -74,6 +78,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
+        [Authorize("SuperAdmin, Admin, Employee")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -85,6 +90,68 @@ namespace DeliveryTrackingSystem.Controllers
             catch (Exception ex)
             {
                 return NotFound(ex.Message);
+            }
+        }
+
+        [Authorize("SuperAdmin, Admin, Employee")]
+        [HttpGet("shipment/{shipmentId:int}")]
+        [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client, NoStore = false)]
+        public async Task<IActionResult> GetStatusHistoryByShipmentId(int shipmentId)
+        {
+            try
+            {
+                var histories = await _historyService.GetStatusHistoryByShipmentIdAsync(shipmentId);
+                return Ok(histories);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
+        }
+
+        [Authorize("SuperAdmin, Admin, Employee")]
+        [HttpGet("shipment/{shipmentId:int}/latest")]
+        [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client, NoStore = false)]
+        public async Task<IActionResult> GetLatestStatusChange(int shipmentId)
+        {
+            try
+            {
+                var history = await _historyService.GetLatestStatusChangeAsync(shipmentId);
+                return Ok(history);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
+        }
+
+        [Authorize("SuperAdmin, Admin, Employee")]
+        [HttpGet("filter")]
+        public async Task<IActionResult> FilterStatusHistory([FromQuery] StatusHistoryFilterDto filter)
+        {
+            try
+            {
+                var histories = await _historyService.FilterStatusHistoryAsync(filter);
+                return Ok(histories);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
+        }
+
+        [Authorize("SuperAdmin, Admin, Employee")]
+        [HttpGet("statistics")]
+        public async Task<IActionResult> GetStatusChangeStatistics([FromQuery] int? shipmentId, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+        {
+            try
+            {
+                var statistics = await _historyService.GetStatusChangeStatisticsAsync(shipmentId, startDate, endDate);
+                return Ok(statistics);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
     }

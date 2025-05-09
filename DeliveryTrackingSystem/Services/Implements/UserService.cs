@@ -20,17 +20,67 @@ namespace DeliveryTrackingSystem.Services.Implements
         private readonly RoleManager<IdentityRole> _roleManager = roleManager;
         private readonly IEmailService _emailService = emailService;
 
+
         public async Task<IEnumerable<UserDto>> GetAllAsync()
         {
             var users = await _userRepository.GetAllAsync();
-            if (!users.Any() || users == null) throw new Exception("No users found!");
-            return _mapper.Map<IEnumerable<UserDto>>(users);
+            if (users == null || !users.Any())
+            {
+                throw new KeyNotFoundException("No users found in the database.");
+            }
+
+            var userDtos = _mapper.Map<IEnumerable<UserDto>>(users);
+            foreach (var userDto in userDtos)
+            {
+                var user = users.FirstOrDefault(u => u.Id == userDto.Id);
+                if (user != null && !string.IsNullOrEmpty(user.ApplicationUserId))
+                {
+                    var appUser = await _userManager.FindByIdAsync(user.ApplicationUserId);
+                    if (appUser != null)
+                    {
+                        userDto.Roles = await _userManager.GetRolesAsync(appUser);
+                    }
+                    else
+                    {
+                        userDto.Roles = new List<string>();
+                    }
+                }
+                else
+                {
+                    userDto.Roles = new List<string>();
+                }
+            }
+
+            return userDtos;
         }
 
         public async Task<UserDto> GetByIdAsync(int id)
         {
             var user = await _userRepository.GetByIdAsync(id);
-            return user != null ? _mapper.Map<UserDto>(user) : throw new Exception("User not found!");
+            if (user == null)
+            {
+                throw new KeyNotFoundException($"User with ID {id} not found.");
+            }
+
+            var userDto = _mapper.Map<UserDto>(user);
+            if (!string.IsNullOrEmpty(user.ApplicationUserId))
+            {
+                var appUser = await _userManager.FindByIdAsync(user.ApplicationUserId);
+                if (appUser != null)
+                {
+                    userDto.Roles = await _userManager.GetRolesAsync(appUser);
+                }
+                else
+                {
+                    userDto.Roles = new List<string>(); // Fallback to empty list if ApplicationUser not found
+                }
+            }
+            else
+            {
+                userDto.Roles = new List<string>(); // Fallback if ApplicationUserId is null
+            }
+
+            return userDto;
         }
 
         public async Task CreateAsync(RegisterDto userCreateDto)
@@ -76,7 +126,7 @@ namespace DeliveryTrackingSystem.Services.Implements
 
             user.ApplicationUserId = appUser.Id;
 
-            var folderPath = Path.Combine("Users", userCreateDto.Role); // Users/Admin, Users/Employee...
+            var folderPath = Path.Combine("Users", userCreateDto.Role); // Users/Admin, Users/Employee...           
             user.ProfileImageFileName = _fileService.SaveFile(userCreateDto.Image, folderPath);
 
             try
@@ -118,6 +168,30 @@ namespace DeliveryTrackingSystem.Services.Implements
         {
             var user = await _userRepository.GetByIdAsync(id) ?? throw new Exception("User not found!");
             await _userRepository.DeleteAsync(id);
+        }
+
+        public async Task<UserDto> GetByEmailAsync(string email)
+        {
+            var user = await _userRepository.GetByEmailAsync(email) ?? throw new KeyNotFoundException($"User not found.");
+            var userDto = _mapper.Map<UserDto>(user);
+            if (!string.IsNullOrEmpty(user.ApplicationUserId))
+            {
+                var appUser = await _userManager.FindByIdAsync(user.ApplicationUserId);
+                if (appUser != null)
+                {
+                    userDto.Roles = await _userManager.GetRolesAsync(appUser);
+                }
+                else
+                {
+                    userDto.Roles = new List<string>(); // Fallback to empty list if ApplicationUser not found
+                }
+            }
+            else
+            {
+                userDto.Roles = new List<string>(); // Fallback if ApplicationUserId is null
+            }
+
+            return userDto;
         }
 
     }
