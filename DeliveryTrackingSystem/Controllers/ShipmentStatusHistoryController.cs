@@ -5,13 +5,14 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DeliveryTrackingSystem.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
+    [ApiVersion("2.0")]
     public class ShipmentStatusHistoryController(IShipmentStatusHistoryService historyService) : ControllerBase
     {
         private readonly IShipmentStatusHistoryService _historyService = historyService;
 
-        [Authorize("SuperAdmin, Admin, Employee")]
+        [Authorize(Roles = "SuperAdmin, Admin, Employee")]
         [HttpGet]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client, NoStore = false)]
         public async Task<IActionResult> GetAll()
@@ -29,6 +30,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
+        [Authorize(Roles = "SuperAdmin, Admin, Employee")]
         [HttpGet("{id:int}")]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client, NoStore = false)]
         public async Task<IActionResult> GetById(int id)
@@ -44,7 +46,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin, Employee")]
+        [Authorize(Roles = "SuperAdmin, Admin, Employee")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ShipmentStatusHistoryCreateDto dto)
         {
@@ -61,7 +63,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin, Employee")]
+        [Authorize(Roles = "SuperAdmin, Admin, Employee")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] ShipmentStatusHistoryCreateDto dto)
         {
@@ -78,7 +80,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin, Employee")]
+        [Authorize(Roles = "SuperAdmin, Admin, Employee")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -93,7 +95,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin, Employee")]
+        [Authorize(Roles = "SuperAdmin, Admin, Employee")]
         [HttpGet("shipment/{shipmentId:int}")]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client, NoStore = false)]
         public async Task<IActionResult> GetStatusHistoryByShipmentId(int shipmentId)
@@ -109,7 +111,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin, Employee")]
+        [Authorize(Roles = "SuperAdmin, Admin, Employee")]
         [HttpGet("shipment/{shipmentId:int}/latest")]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client, NoStore = false)]
         public async Task<IActionResult> GetLatestStatusChange(int shipmentId)
@@ -125,7 +127,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin, Employee")]
+        [Authorize(Roles = "SuperAdmin, Admin, Employee")]
         [HttpGet("filter")]
         public async Task<IActionResult> FilterStatusHistory([FromQuery] StatusHistoryFilterDto filter)
         {
@@ -140,7 +142,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin, Employee")]
+        [Authorize(Roles = "SuperAdmin, Admin, Employee")]
         [HttpGet("statistics")]
         public async Task<IActionResult> GetStatusChangeStatistics([FromQuery] int? shipmentId, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
         {

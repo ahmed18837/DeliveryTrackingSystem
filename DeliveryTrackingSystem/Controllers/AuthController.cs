@@ -6,13 +6,14 @@ using System.Security.Claims;
 
 namespace DeliveryTrackingSystem.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
+    [ApiVersion("1.0")]
     public class AuthController(IAuthService authService) : ControllerBase
     {
         private readonly IAuthService _authService = authService;
 
-        [Authorize("SuperAdmin")]
+        [Authorize(Roles = "SuperAdmin")]
         [HttpPost("AdminRegister")]
         public async Task<IActionResult> AdminRegister([FromForm] RequestRegisterDto requestRegister)
         {
@@ -179,7 +180,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin")]
+        [Authorize(Roles = "SuperAdmin")]
         [HttpPost("AssignRole")]
         public async Task<IActionResult> AssignRole([FromBody] AssignRoleDto model)
         {
@@ -277,7 +278,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin")]
+        [Authorize(Roles = "SuperAdmin")]
         [HttpDelete("DeleteRole/{roleName}")]
         public async Task<IActionResult> DeleteRole(string roleName)
         {

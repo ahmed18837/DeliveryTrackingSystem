@@ -5,8 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DeliveryTrackingSystem.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
+    [ApiVersion("2.0")]
     public class ShipmentController(IShipmentService shipmentService) : ControllerBase
     {
         private readonly IShipmentService _shipmentService = shipmentService;
@@ -29,7 +30,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin, Employee")]
+        [Authorize(Roles = "SuperAdmin, Admin, Employee")]
         [HttpGet("{id:int}")]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client, NoStore = false)]
         public async Task<IActionResult> GetById(int id)
@@ -45,7 +46,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin, Employee")]
+        [Authorize(Roles = "SuperAdmin, Admin, Employee")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ShipmentCreateDto dto)
         {
@@ -62,7 +63,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin, Employee")]
+        [Authorize(Roles = "SuperAdmin, Admin, Employee")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] ShipmentUpdateDto dto)
         {
@@ -79,7 +80,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin, Employee")]
+        [Authorize(Roles = "SuperAdmin, Admin, Employee")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -94,7 +95,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin, Employee")]
+        [Authorize(Roles = "SuperAdmin, Admin, Employee")]
         [HttpPut("{shipmentId}/status")]
         public async Task<IActionResult> UpdateShipmentStatus(int shipmentId, [FromBody] string status)
         {
@@ -112,7 +113,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin, Employee")]
+        [Authorize(Roles = "SuperAdmin, Admin, Employee")]
         [HttpGet("track/{trackingNumber}")]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client, NoStore = false)]
         public async Task<IActionResult> GetByTrackingNumber(string trackingNumber)
@@ -129,7 +130,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin, Employee")]
+        [Authorize(Roles = "SuperAdmin, Admin, Employee")]
         [HttpGet("Filter")]
         public async Task<IActionResult> FilterShipments([FromQuery] ShipmentFilterDto filter)
         {
@@ -144,7 +145,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin, Employee")]
+        [Authorize(Roles = "SuperAdmin, Admin, Employee")]
         [HttpGet("statistics")]
         public async Task<IActionResult> GetShipmentStatistics([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
         {
@@ -159,7 +160,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin, Employee")]
+        [Authorize(Roles = "SuperAdmin, Admin, Employee")]
         [HttpGet("top-destinations")]
         public async Task<IActionResult> GetTopDestinations([FromQuery] int topN = 5)
         {

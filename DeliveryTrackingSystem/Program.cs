@@ -1,4 +1,4 @@
-using DeliveryTrackingSystem.Data;
+ï»¿using DeliveryTrackingSystem.Data;
 using DeliveryTrackingSystem.Helper;
 using DeliveryTrackingSystem.Repositories.GenericRepository;
 using DeliveryTrackingSystem.Repositories.Implements;
@@ -7,8 +7,11 @@ using DeliveryTrackingSystem.Services.Implements;
 using DeliveryTrackingSystem.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,6 +27,23 @@ builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
+
+builder.Services.AddApiVersioning(options =>
+{
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.DefaultApiVersion = new ApiVersion(2, 0);
+    options.ReportApiVersions = true;
+});
+
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpContextAccessor(); // for IHttpContextAccessor
+
+
+builder.Services.AddVersionedApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
 });
 
 // Add Repositories
@@ -46,9 +66,60 @@ builder.Services.AddScoped<IAuthService, AuthService>(); // Auth Service
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 //builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+builder.Services.AddResponseCaching();
+
+//builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+//    .AddEntityFrameworkStores<AppDbContext>()
+//    .AddDefaultTokenProviders();
+
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+{
+    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+    options.User.RequireUniqueEmail = true;
+})
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v3", new OpenApiInfo { Title = "Your API", Version = "v3" });
+    options.UseInlineDefinitionsForEnums();
+    // To Run Token In Swagger
+    options.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = JwtBearerDefaults.AuthenticationScheme
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+      {
+        new OpenApiSecurityScheme
+        {
+            Reference = new OpenApiReference
+            {
+                Type = ReferenceType.SecurityScheme,
+                Id = JwtBearerDefaults.AuthenticationScheme
+            },
+            Scheme = "Auth",
+            Name = JwtBearerDefaults.AuthenticationScheme,
+            In = ParameterLocation.Header
+        },
+            new List<string>()
+    }
+});
+});
+
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+{
+    options.TokenLifespan = TimeSpan.FromHours(1);
+});
+
+
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -77,10 +148,10 @@ builder.Services.AddAuthentication(options =>
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey
             (Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
-            RoleClaimType = "Roles",
             ClockSkew = TimeSpan.Zero
         };
     });
+
 
 builder.Services.AddCors(options =>
 {
@@ -92,46 +163,52 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddAuthorization(options =>
-{
-    // ÓíÇÓÉ ÇáÜ Admin
-    options.AddPolicy("Admin", policy =>
-        policy.RequireRole("Admin"));
-
-    // ÓíÇÓÉ ÇáÜ SuperAdmin
-    options.AddPolicy("SuperAdmin", policy =>
-        policy.RequireRole("SuperAdmin"));
-
-    // ÓíÇÓÉ ÇáÜ Employee
-    options.AddPolicy("Employee", policy =>
-        policy.RequireRole("Employee"));
-
-    // ÓíÇÓÉ ÇáÜ Driver
-    options.AddPolicy("Driver", policy =>
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("Admin", policy =>
+        policy.RequireRole("Admin"))
+    .AddPolicy("SuperAdmin", policy =>
+        policy.RequireRole("SuperAdmin"))
+    .AddPolicy("Employee", policy =>
+        policy.RequireRole("Employee"))
+    .AddPolicy("Driver", policy =>
         policy.RequireRole("Driver"));
-});
 
+builder.Services.AddAuthorization();
+builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
-app.UseCors("AllowAll");
-// Configure the HTTP request pipeline.
-//if (app.Environment.IsDevelopment())
-//{
+app.UseRouting();
+var versionDescriptionProvider =
+    app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
 app.UseSwagger();
-app.UseSwaggerUI();
-//}
-app.UseHttpsRedirection();
+app.UseSwaggerUI(options =>
+{
+    foreach (var description in versionDescriptionProvider.ApiVersionDescriptions)
+    {
+        options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json",
+            description.GroupName.ToUpperInvariant());
+    }
+});
 
+app.UseResponseCaching();
 app.UseHttpsRedirection();
-
+app.UseRouting();
+app.UseAuthentication(); // Ã­ÃŒÃˆ ÃƒÃ¤ Ã­ÃŸÃ¦Ã¤ ÃžÃˆÃ¡ UseAuthorization
 app.UseAuthorization();
-
-app.MapControllers();
-
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+});
+app.UseCors("AllowAll");
 app.UseStaticFiles();
+
 app.Run();

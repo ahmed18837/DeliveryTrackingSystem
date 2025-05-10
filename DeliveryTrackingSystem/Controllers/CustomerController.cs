@@ -5,13 +5,14 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DeliveryTrackingSystem.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
+    [ApiVersion("2.0")]
     public class CustomerController(ICustomerService customerService) : ControllerBase
     {
         private readonly ICustomerService _customerService = customerService;
 
-        [Authorize("SuperAdmin, Admin, Employee")]
+        [Authorize(Roles = "SuperAdmin, Admin, Employee")]
         [HttpGet]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client, NoStore = false)]
         public async Task<IActionResult> GetAll()
@@ -29,7 +30,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin, Employee")]
+        [Authorize(Roles = "SuperAdmin, Admin, Employee")]
         [HttpGet("{id:int}")]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client, NoStore = false)]
         public async Task<IActionResult> GetById(int id)
@@ -45,7 +46,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CustomerCreateDto dto)
         {
@@ -62,7 +63,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, CustomerUpdateDto dto)
         {
@@ -79,7 +80,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -95,7 +96,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPut("{id}/email")]
         public async Task<IActionResult> UpdateEmail(int id, [FromBody] string email)
         {
@@ -111,7 +112,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpGet("{customerId:int}/shipments")]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client, NoStore = false)]
         public async Task<IActionResult> GetCustomerShipments(int customerId)
@@ -127,7 +128,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpGet("shipments/{shipmentId:int}/status-history")]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client, NoStore = false)]
         public async Task<IActionResult> GetShipmentStatusHistory(int shipmentId)
@@ -143,7 +144,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpGet("{customerId:int}/shipment-summary")]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client, NoStore = false)]
         public async Task<IActionResult> GetCustomerShipmentSummary(int customerId)
@@ -159,7 +160,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpGet("search")]
         public async Task<IActionResult> SearchCustomers([FromQuery] string searchTerm)
         {
@@ -175,7 +176,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpGet("filter-by-shipments")]
         public async Task<IActionResult> FilterCustomersByShipmentCount([FromQuery] int minShipments, [FromQuery] int maxShipments)
         {

@@ -6,8 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DeliveryTrackingSystem.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
+    [ApiVersion("1.0")]
     public class UserController(IUserService userService) : ControllerBase
     {
         private readonly IUserService _userService = userService;
@@ -15,7 +16,7 @@ namespace DeliveryTrackingSystem.Controllers
         [HttpGet]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client, NoStore = false)]
 
-        [Authorize("SuperAdmin, Admin")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
         public async Task<IActionResult> GetAll()
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -31,7 +32,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpGet("{id:int}")]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client, NoStore = false)]
         public async Task<IActionResult> GetById(int id)
@@ -47,7 +48,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin")]
+        [Authorize(Roles = "SuperAdmin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] RegisterDto dto)
         {
@@ -64,7 +65,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] UserUpdateDto dto)
         {
@@ -81,7 +82,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -96,7 +97,7 @@ namespace DeliveryTrackingSystem.Controllers
             }
         }
 
-        [Authorize("SuperAdmin, Admin")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpGet("UserByEmail/{email}")]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client, NoStore = false)]
         public async Task<IActionResult> GetUserByEmail(string email)
